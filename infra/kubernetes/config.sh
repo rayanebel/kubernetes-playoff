@@ -4,8 +4,11 @@ SERVICE_ACCOUNT_NAME=admin-service-account
 CONTEXT=$(kubectl config current-context)
 NAMESPACE=default
 
-NEW_CONTEXT=gke-playoff-k8s
+NEW_CONTEXT=gke-playoff-k8s-sa-admin
 KUBECONFIG_FILE="kubeconfig-sa"
+
+gcloud container clusters get-credentials playoff-gke --zone europe-west1-b
+kubectl apply -f k8s-serviceaccount-admin.yaml
 
 
 SECRET_NAME=$(kubectl get serviceaccount ${SERVICE_ACCOUNT_NAME} \

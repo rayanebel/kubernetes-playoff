@@ -13,22 +13,37 @@ module "vpc" {
 
   subnets = [
     {
+      subnet_name   = "admin-k8s-subnet"
+      subnet_ip     = "172.16.0.0/24"
+      subnet_region = "europe-west1"
+    },
+    {
       subnet_name   = "k8s-subnet"
-      subnet_ip     = "10.10.10.0/24"
+      subnet_ip     = "10.10.1.0/24"
       subnet_region = "europe-west1"
     }
   ]
 
   secondary_ranges = {
-    k8s-subnet = [
+    "admin-k8s-subnet" = [
+      {
+        range_name    = "admin-k8s-subnet-pods"
+        ip_cidr_range = "172.16.1.0/24"
+      },
+      {
+        range_name    = "admin-k8s-subnet-services"
+        ip_cidr_range = "172.16.2.0/24"
+      }
+    ]
+    "k8s-subnet" = [
       {
         range_name    = "k8s-subnet-pods"
-        ip_cidr_range = "192.168.0.0/24"
+        ip_cidr_range = "10.10.2.0/24"
       },
       {
         range_name    = "k8s-subnet-services"
-        ip_cidr_range = "192.168.1.0/24"
-      },
+        ip_cidr_range = "10.10.3.0/24"
+      }
     ]
   }
 
@@ -53,26 +68,29 @@ module "cloud_router" {
 
 
 module "gke" {
-  source                  = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
-  project_id              = var.project_id
-  name                    = "playoff-gke"
-  regional                = false
-  zones                   = ["europe-west1-b"]
-  create_service_account  = false
-  region                  = var.region
-  network                 = module.vpc.network_name
-  subnetwork              = "k8s-subnet"
-  ip_range_pods           = "k8s-subnet-pods"
-  ip_range_services       = "k8s-subnet-services"
-  enable_private_endpoint = false
-  enable_private_nodes    = true
-  master_ipv4_cidr_block  = "172.16.0.0/28"
+  source                   = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
+  project_id               = var.project_id
+  name                     = "admin-playoff-gke"
+  regional                 = false
+  zones                    = ["europe-west1-b"]
+  create_service_account   = false
+  region                   = var.region
+  network                  = module.vpc.network_name
+  subnetwork               = "admin-k8s-subnet"
+  ip_range_pods            = "admin-k8s-subnet-pods"
+  ip_range_services        = "admin-k8s-subnet-services"
+  enable_private_endpoint  = false
+  enable_private_nodes     = true
+  master_ipv4_cidr_block   = "172.16.3.0/28"
+  remove_default_node_pool = true
+
+  default_max_pods_per_node = 30
 
   master_authorized_networks = []
 
   node_pools = [
     {
-      name            = "default-node-pool"
+      name            = "default-pool"
       machine_type    = "e2-medium"
       min_count       = 1
       max_count       = 5

@@ -17,16 +17,19 @@ Pour réaliser cet exercice, vous allez avoir besoin des outils suivants:
 
     * Le cluster doit être privé UNIQUEMENT pour les noeuds _(worker nodes)_. Le control plan _(master nodes)_ lui doit être accessible publiquement pour le déroulement de l'exercice _(tips: il existe des variables dans le module terraform pour configurer ce scénario)_.
 
+    * Le cluster doit héberger _30 pods_ par noeuds _(max-pods-per-node)_
+
     * La configuration réseau du cluster doit être la suivante:
-        
+
+        * Nom du réseau: `playoff`
         * Sous réseau pour les noeuds: `k8s-subnet`
         * Sous réseau pour les pods: `k8s-subnet-pods`
         * Sous réseau pour les services: `k8s-subnet-services`
-        * CIDR du control plan: `172.16.0.0/28`
+        * CIDR du control plan: `172.16.3.16/28`
 
     * Le cluster devra avoir un nodepool avec les configurations suivantes:
 
-        * Nom: default-node-pool
+        * Nom: default-pool
         * VM SKU: "e2-medium"
         * minimum       = 1
         * maximum       = 5
